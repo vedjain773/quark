@@ -1,5 +1,6 @@
 #include "frontend/scanner/Token.hpp"
 #include <iostream>
+#include <array>
 
 std::unordered_map<std::string, TokenType> keywords = {
     {"int", TokenType::INT},           {"uint8_t", TokenType::UINT8},
@@ -10,7 +11,7 @@ std::unordered_map<std::string, TokenType> keywords = {
     {"struct", TokenType::STRUCT},     {"break", TokenType::BREAK},
     {"continue", TokenType::CONTINUE}, {"sizeof", TokenType::SIZEOF}};
 
-std::string TokenTypeNames[] {
+constexpr std::array<std::string, 50> TokenTypeNames {
     // keywords
     "INT", "UINT8", "UINT16", "CHAR", "VOID", "IF", "ELSE", "WHILE", "FOR",
     "RETURN", "STRUCT", "BREAK", "CONTINUE", "SIZEOF",
@@ -37,7 +38,8 @@ std::string TokenTypeNames[] {
     // literals
     "IDENTIFIER", "INTEGER", "CHARACTER", "STRING",
 
-    "END_OF_FILE"};
+    "END_OF_FILE"
+};
 
 bool isTypeStarter(TokenType tokentype) {
     switch (tokentype) {
