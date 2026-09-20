@@ -251,6 +251,19 @@ void PrintVisitor::visitFuncDef(FuncDef &funcdef) {
     depth -= 1;
 }
 
+void PrintVisitor::visitGlobalDecl(GlobalDecl &globaldecl) {
+    std::cout << getIndent() << "|-Global(Declare)\n";
+    std::cout << getIndent() << "  |-Var(" + globaldecl.name + ")\n";
+
+    depth += 1;
+
+    if (globaldecl.expression != nullptr) {
+        (globaldecl.expression)->accept(*this);
+    }
+
+    depth -= 1;
+}
+
 void PrintVisitor::visitProgram(Program &program) {
     for (auto &edecl : program.root) {
         edecl->accept(*this);

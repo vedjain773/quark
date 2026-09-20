@@ -12,20 +12,33 @@ llvm::Value *CharExpr::codegen(CodegenVis &codegenvis) {
 
 llvm::Value *VarExpr::codegen(CodegenVis &codegenvis) {
     llvm::IRBuilder<> *Bldr = (codegenvis.Builder).get();
+    
     llvm::AllocaInst *alloca = codegenvis.lookup(Name);
+    llvm::Type *type = nullptr;
+    llvm::Value *src = nullptr;
 
     if (!alloca) {
-        return codegenvis.LogErrorV("Use of undeclared variable: " + Name);
+        llvm::GlobalVariable *global = codegenvis.findGlobal(Name);
+        if (global == nullptr) return codegenvis.LogErrorV("Use of undeclared variable: " + Name);
+        
+        type = global->getValueType();
+        src = global;
+    } else {
+        type = alloca->getAllocatedType();
+        src = alloca;
     }
 
-    return Bldr->CreateLoad(alloca->getAllocatedType(), alloca, Name.c_str());
+    return Bldr->CreateLoad(type, src, Name.c_str());
 }
 
 llvm::Value *VarExpr::emitPtr(CodegenVis &codegenvis) {
     llvm::AllocaInst *alloca = codegenvis.lookup(Name);
 
     if (!alloca) {
-        return codegenvis.LogErrorV("Use of undeclared variable: " + Name);
+        llvm::GlobalVariable *global = codegenvis.findGlobal(Name);
+        if (global == nullptr) return codegenvis.LogErrorV("Use of undeclared variable: " + Name);
+        
+        return global;    
     }
 
     return alloca;

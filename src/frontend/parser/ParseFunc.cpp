@@ -10,7 +10,11 @@ std::unique_ptr<Parameter> Parser::ParseParameter() {
 }
 
 std::unique_ptr<Prototype> Parser::ParsePrototype() {
-    auto [typek, name, tline, tcol] = getTypeNamePair();
+    return ParsePrototype(getTypeNamePair()); 
+}
+
+std::unique_ptr<Prototype> Parser::ParsePrototype(TypeNameInfo data) {
+    auto [typek, name, tline, tcol] = data;
 
     if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after function name"))
         return nullptr;
@@ -33,7 +37,7 @@ std::unique_ptr<Prototype> Parser::ParsePrototype() {
 
     getNextToken();
     return Result;
-}
+}   
 
 std::unique_ptr<FuncDef> Parser::ParseFuncDef() {
     auto proto = ParsePrototype();

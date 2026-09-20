@@ -42,6 +42,8 @@ class CodegenVis {
     std::unique_ptr<llvm::LLVMContext> Context;
     std::unique_ptr<llvm::IRBuilder<>> Builder;
     std::unique_ptr<llvm::Module> Module;
+
+    std::map<std::string, llvm::GlobalVariable *> globals;
     std::vector<std::map<std::string, llvm::AllocaInst *>> scopes;
     std::stack<std::pair<llvm::BasicBlock *, llvm::BasicBlock *>> loopStack;
 
@@ -56,8 +58,10 @@ class CodegenVis {
 
     void pushScope();
     void popScope();
+
     void insertName(const std::string &name, llvm::AllocaInst *alloca);
     llvm::AllocaInst *lookup(const std::string &name);
+    llvm::GlobalVariable *findGlobal(const std::string &name);
 
     void emitObj(const std::string &Filename);
 };

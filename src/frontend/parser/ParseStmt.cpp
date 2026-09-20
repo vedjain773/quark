@@ -140,30 +140,7 @@ std::unique_ptr<Statement> Parser::ParseReturnStmt() {
 std::unique_ptr<Statement> Parser::ParseDeclStmt() {
     auto [typek, varname, tline, tcol] = getTypeNamePair();
 
-    int lastTokenLine, lastTokenCol;
-    std::unique_ptr<Expression> expr;
-
-    if (peekCurr().tokentype == TokenType::EQUALS) {
-        getNextToken();
-        expr = ParseExpr();
-
-        lastTokenLine = expr->line;
-        lastTokenCol = expr->column;
-    } else {
-        lastTokenLine = peekCurr().line;
-        lastTokenCol = peekCurr().column;
-
-        expr = nullptr;
-    }
-
-    if (peekCurr().tokentype != TokenType::SEMICOLON) {
-        Error error(lastTokenLine, lastTokenCol, "Missing ';' after declaration");
-        numOfErrors += 1;
-        advToSyncPoint();
-        return nullptr;
-    }
-
-    getNextToken();
+    auto expr = ParseDeclExpr();
     return std::make_unique<DeclStmt>(typek, varname, std::move(expr), tline, tcol);
 }
 

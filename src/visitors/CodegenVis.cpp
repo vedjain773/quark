@@ -178,6 +178,12 @@ llvm::AllocaInst *CodegenVis::lookup(const std::string &name) {
     return nullptr;
 }
 
+llvm::GlobalVariable *CodegenVis::findGlobal(const std::string &name) {
+    if (globals.count(name) != 0) return globals[name];  
+
+    return nullptr;
+}
+
 void CodegenVis::emitObj(const std::string &Filename) {
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();

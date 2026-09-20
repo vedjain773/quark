@@ -209,6 +209,49 @@ Token Parser::peekAhead(int n) {
     return TokenList[current + n];
 }
 
+std::unique_ptr<Expression> Parser::ParseDeclExpr() {
+    int lastTokenLine, lastTokenCol;
+    std::unique_ptr<Expression> expr;
+
+    if (peekCurr().tokentype == TokenType::EQUALS) {
+        getNextToken();
+        expr = ParseExpr();
+
+        lastTokenLine = expr->line;
+        lastTokenCol = expr->column;
+    } else {
+        lastTokenLine = peekCurr().line;
+        lastTokenCol = peekCurr().column;
+
+        expr = nullptr;
+    }
+
+    if (peekCurr().tokentype != TokenType::SEMICOLON) {
+        Error error(lastTokenLine, lastTokenCol, "Missing ';' after declaration");
+        numOfErrors += 1;
+        advToSyncPoint();
+        return nullptr;
+    }
+
+    getNextToken();
+    return expr; 
+}
+
+std::unique_ptr<ExternalDecl> Parser::ParseExDecl() {
+    TypeNameInfo typeNameData = getTypeNamePair();
+    auto [typek, name, tline, tcol] = typeNameData;
+
+    if (peekCurr().tokentype == TokenType::LEFT_ROUND) {
+        auto proto = ParsePrototype(typeNameData); 
+        auto block = ParseBlockStmt();
+
+        return std::make_unique<FuncDef>(std::move(proto), std::move(block));
+    } else {
+        auto expr = ParseDeclExpr();
+        return std::make_unique<GlobalDecl>(typek, name, std::move(expr), tline, tcol);
+    }
+}
+
 std::unique_ptr<Program> Parser::ParseProgram() {
     auto program = std::make_unique<Program>();
 
@@ -218,7 +261,7 @@ std::unique_ptr<Program> Parser::ParseProgram() {
             auto edecl = ParseStructDecl();
             program->add(std::move(edecl));
         } else {
-            auto edecl = ParseFuncDef();
+            auto edecl = ParseExDecl();
             program->add(std::move(edecl));
         }
     }

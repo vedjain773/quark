@@ -9,6 +9,8 @@
 #include <tuple>
 #include <vector>
 
+using TypeNameInfo = std::tuple<TypeKind *, std::string, int, int>;
+
 enum BinOpPrec { FACTOR, TERM, COMP, COMP_EQL, LAND, LOR, MISC = 100 };
 
 BinOpPrec getBinPrecedence(Operators Op);
@@ -31,8 +33,10 @@ class Parser {
     std::tuple<TypeKind *, std::string> ParseTypePrefix();
     TypeKind *ParseTypeSuffix(TypeKind *typek, std::string &typeName);
     TypeKind *ParseType();
-    std::tuple<TypeKind *, std::string, int, int> getTypeNamePair();
+    TypeNameInfo getTypeNamePair();
 
+    std::unique_ptr<Expression> ParseDeclExpr();
+        
     void expect(const Token &token, const std::string &msg);
     bool expectAndConsume(TokenType tokenType, const std::string &msg);
 
@@ -66,8 +70,11 @@ class Parser {
 
     // Parse Functions
     std::unique_ptr<Parameter> ParseParameter();
+    std::unique_ptr<Prototype> ParsePrototype(TypeNameInfo data);
     std::unique_ptr<Prototype> ParsePrototype();
     std::unique_ptr<FuncDef> ParseFuncDef();
+
+    std::unique_ptr<ExternalDecl> ParseExDecl();
 
   public:
     int numOfErrors = 0;

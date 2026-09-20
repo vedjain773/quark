@@ -24,6 +24,11 @@ void SemanticVisitor::reportError(Expression &expr, std::string msg) {
     numOfErrors += 1;
 }
 
+void SemanticVisitor::reportError(GlobalDecl &globaldecl, std::string msg) {
+    Error error(globaldecl.line, globaldecl.column, msg);
+    numOfErrors += 1;
+}
+
 void SemanticVisitor::visitProgram(Program &program) {
     Scope globalScope;
     scopeVec.push_back(globalScope);
@@ -38,23 +43,65 @@ void SemanticVisitor::visitProgram(Program &program) {
     scopeVec.pop_back();
 }
 
+void SemanticVisitor::visitGlobalDecl(GlobalDecl &globaldecl) {
+    if (getCurrScope().search(globaldecl.name)) {
+        reportError(globaldecl, std::format("redeclaration of {}", globaldecl.name));
+    } else {
+        getCurrScope().addRow(globaldecl.name, globaldecl.type, SymbolKind::VARIABLE);
+    }
+
+    Expression *expr = (globaldecl.expression).get();
+    TypeKind *declType = globaldecl.type;
+
+    if (expr != nullptr) {
+        expr->accept(*this);
+        TypeKind *exprType = expr->infType;
+        
+        if (exprType == getType("void")) {
+            return reportError(globaldecl, "Variables cannot be of type: void");
+        }
+        
+        if (exprType->type != declType->type) {
+            std::string errmsg = std::format(
+                    "Cannot assign expression of type {} to '{}' of type {}",
+                    exprType->name, globaldecl.name, declType->name);
+
+            return reportError(globaldecl, errmsg);
+        } 
+
+        if (exprType != declType) {
+            auto castexpr = std::make_unique<CastExpr>(std::move(globaldecl.expression),
+                    exprType, declType);
+
+            Expression *cexpr = castexpr.get();
+            cexpr->accept(*this);
+
+            globaldecl.expression = std::move(castexpr);
+        }
+
+        globaldecl.expression->infType = declType;
+    }
+}
+
 void SemanticVisitor::visitParameter(Parameter &parameter) {
     getCurrScope().addRow(parameter.name, parameter.type, SymbolKind::VARIABLE);
 }
 
-void SemanticVisitor::visitPrototype(Prototype &prototype) {
+void SemanticVisitor::visitPrototype(Prototype &prototype) {    
+    std::string funcName = prototype.funcName;
 
-    if (scopeVec[0].search(prototype.funcName)) {
-        Error error(prototype.line, prototype.column, prototype.funcName + " is already declared");
+    if (scopeVec[0].search(funcName)) {
+        Error error(prototype.line, prototype.column,
+                std::format("redeclaration of {}", funcName));
         numOfErrors += 1;
     } else {
-        scopeVec[0].addRow(prototype.funcName, prototype.retType, SymbolKind::FUNCTION);
+        scopeVec[0].addRow(funcName, prototype.retType, SymbolKind::FUNCTION);
         currFuncRetType = prototype.retType;
     }
 
     for (auto &param : prototype.paramList) {
         param->accept(*this);
-        scopeVec[0].addParam(prototype.funcName, param->type);
+        scopeVec[0].addParam(funcName, param->type);
     }
 }
 
@@ -100,7 +147,7 @@ void SemanticVisitor::visitBlockStmt(BlockStmt &blockstmt) {
 
 void SemanticVisitor::visitDeclStmt(DeclStmt &declstmt) {
     if (getCurrScope().search(declstmt.name)) {
-        reportError(declstmt, declstmt.name + " is already declared");
+        reportError(declstmt, std::format("redeclaration of {}", declstmt.name));
     } else {
         getCurrScope().addRow(declstmt.name, declstmt.type, SymbolKind::VARIABLE);
     }

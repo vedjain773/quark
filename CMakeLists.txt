@@ -5,6 +5,10 @@ project(quark LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
 find_package(LLVM REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -16,6 +20,7 @@ file(GLOB SRC_FILES
     src/frontend/parser/*.cpp
     src/nodes/*.cpp
     src/nodes/expression/*.cpp
+    src/nodes/external/*.cpp
     src/nodes/statement/*.cpp
     src/nodes/function/*.cpp
     src/visitors/*.cpp

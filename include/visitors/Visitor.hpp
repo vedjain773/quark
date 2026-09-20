@@ -44,6 +44,7 @@ class Prototype;
 class FuncDef;
 
 class ExternalDecl;
+class GlobalDecl;
 class Program;
 
 class Visitor {
@@ -84,6 +85,7 @@ class Visitor {
     virtual void visitPrototype(Prototype &prototype) = 0;
     virtual void visitFuncDef(FuncDef &funcdef) = 0;
 
+    virtual void visitGlobalDecl(GlobalDecl &globaldecl) = 0;
     virtual void visitProgram(Program &program) = 0;
 };
 
@@ -123,6 +125,7 @@ class PrintVisitor : public Visitor {
     void visitPrototype(Prototype &prototype);
     void visitFuncDef(FuncDef &funcdef);
 
+    void visitGlobalDecl(GlobalDecl &globaldecl);
     void visitProgram(Program &program);
 
     std::string getIndent();
@@ -138,6 +141,7 @@ class SemanticVisitor : public Visitor {
     Scope &getCurrScope();
     void reportError(Statement &stmt, std::string msg);
     void reportError(Expression &expr, std::string msg);
+    void reportError(GlobalDecl &globaldecl, std::string msg);
 
     void visitIntExpr(IntExpr &intexpr);
     void visitCharExpr(CharExpr &charexpr);
@@ -176,6 +180,7 @@ class SemanticVisitor : public Visitor {
     void visitPrototype(Prototype &prototype);
     void visitFuncDef(FuncDef &funcdef);
 
+    void visitGlobalDecl(GlobalDecl &globaldecl);
     void visitProgram(Program &program);
 };
 
