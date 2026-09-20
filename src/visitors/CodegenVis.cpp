@@ -85,30 +85,48 @@ llvm::Value *CodegenVis::handleBinOp(const OpConfig &opconfig) {
         } break;
 
         case Operators::DIVIDE: {
-            return Bldr->CreateSDiv(left, right, "sdiv", false);
+            if (infType->isSigned) return Bldr->CreateSDiv(left, right, "sdiv", false);
+            else return Bldr->CreateUDiv(left, right, "udiv", false); 
         } break;
 
         case Operators::MODULUS: {
-            return Bldr->CreateSRem(left, right, "srem");
+            if (infType->isSigned) return Bldr->CreateSRem(left, right, "srem");
+            else return Bldr->CreateURem(left, right, "urem");
         } break;
 
         case Operators::GREATER: {
-            llvm::Value *gt = Bldr->CreateICmpSGT(left, right, "compSGT");
+            llvm::Value *gt = nullptr;
+
+            if (infType->isSigned) gt = Bldr->CreateICmpSGT(left, right, "compSGT");
+            else gt = Bldr->CreateICmpUGT(left, right, "compUGT");
+            
             return Bldr->CreateZExt(gt, tkToType(infType), "ext");
         } break;
 
         case Operators::GREATER_EQUALS: {
-            llvm::Value *ge = Bldr->CreateICmpSGE(left, right, "compSGE");
+            llvm::Value *ge = nullptr;
+
+            if (infType->isSigned) ge = Bldr->CreateICmpSGE(left, right, "compSGE");
+            else ge = Bldr->CreateICmpUGE(left, right, "compUGE");
+            
             return Bldr->CreateZExt(ge, tkToType(infType), "ext");
         } break;
 
         case Operators::LESS: {
-            llvm::Value *lt = Bldr->CreateICmpSLT(left, right, "compSLT");
+            llvm::Value *lt = nullptr;
+            
+            if (infType->isSigned) lt = Bldr->CreateICmpSLT(left, right, "compSLT");
+            else lt = Bldr->CreateICmpULT(left, right, "compULT");
+
             return Bldr->CreateZExt(lt, tkToType(infType), "ext");
         } break;
 
         case Operators::LESS_EQUALS: {
-            llvm::Value *le = Bldr->CreateICmpSLE(left, right, "compSLE");
+            llvm::Value *le = nullptr;
+            
+            if (infType->isSigned) le = Bldr->CreateICmpSLE(left, right, "compSLE");
+            else le = Bldr->CreateICmpULE(left, right, "compULE");
+
             return Bldr->CreateZExt(le, tkToType(infType), "ext");
         } break;
 

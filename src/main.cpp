@@ -8,7 +8,7 @@ struct CIConfig {
     bool optimize = false;
     bool printAST = false;
     bool printTokens = false;
-    bool emitIR = false;
+    bool printIR = false;
     bool notCompile = false;
 };
 
@@ -31,8 +31,8 @@ int main(int argc, char **argv) {
             config.printTokens = true;
         } else if (arg == "--print-ast") {
             config.printAST = true;
-        } else if (arg == "--emit-llvm") {
-            config.emitIR = true;
+        } else if (arg == "--print-llvm") {
+            config.printIR = true;
         } else if (arg == "--optimize") {
             config.optimize = true;
         } else if (arg == "--no-compile") {
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
         if (config.optimize)
             prog->opt();
 
-        if (config.emitIR)
+        if (config.printIR)
             prog->emitIR();
 
         prog->emitObj(destname);

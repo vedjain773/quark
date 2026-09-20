@@ -31,6 +31,7 @@ struct TypeKind {
     std::string name;
     size_t size;
     size_t align;
+    bool isSigned = true;
 
     TypeKind *to = nullptr;
 
