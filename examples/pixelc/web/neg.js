@@ -35,12 +35,10 @@ upload.onchange = () => {
   };
 };
 
-// 3) Process image via WASM
 function processImage() {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
-  // Use __heap_base as the safe pointer
   const ptr = instance.exports.__heap_base.value;
   console.log("__heap_base:", ptr);
 
@@ -52,7 +50,6 @@ function processImage() {
     instance.exports.memory.grow(needed_pages);
   }
 
-  // Always re-slice AFTER any grow
   const mem = new Uint8Array(instance.exports.memory.buffer);
   mem.set(data, ptr);
 
@@ -81,7 +78,6 @@ function negJS(data) {
 function createBenchmark(instance, width, height, runs = 21) {
   const length = width * height * 4;
 
-  // --- Allocate WASM memory ONCE ---
   const ptr = instance.exports.__heap_base.value;
 
   const requiredBytes = ptr + length;
@@ -92,32 +88,26 @@ function createBenchmark(instance, width, height, runs = 21) {
     instance.exports.memory.grow(pagesNeeded);
   }
 
-  // Stable views (recreate if buffer changes, but we avoid growth later)
   let wasmView = new Uint8ClampedArray(
     instance.exports.memory.buffer,
     ptr,
     length,
   );
 
-  // JS buffer
   const jsBuffer = new Uint8ClampedArray(length);
 
   return function runBenchmark(imageData) {
-    // Copy ONCE per run (outside timing)
     wasmView.set(imageData.data);
     jsBuffer.set(imageData.data);
 
-    // --- Warm-up (important for JIT + WASM) ---
     for (let i = 0; i < 5; i++) {
       instance.exports.neg(ptr, length);
       negJS(jsBuffer);
     }
 
-    // Reset after warm-up
     wasmView.set(imageData.data);
     jsBuffer.set(imageData.data);
 
-    // --- WASM timing ---
     let wasmTotal = 0;
     for (let i = 0; i < runs; i++) {
       console.log(`Iteration: ${i}`);
@@ -127,7 +117,6 @@ function createBenchmark(instance, width, height, runs = 21) {
       wasmTotal += t2 - t1;
     }
 
-    // --- JS timing ---
     let jsTotal = 0;
     for (let i = 0; i < runs; i++) {
       const t1 = performance.now();
@@ -143,7 +132,6 @@ function createBenchmark(instance, width, height, runs = 21) {
     console.log(`JS   avg: ${jsAvg.toFixed(2)} ms`);
     console.log(`Speed ratio (JS / WASM): ${(jsAvg / wasmAvg).toFixed(2)}x`);
 
-    // After benchmarking, display WASM result
     const output = new ImageData(wasmView, width, height);
     ctx.putImageData(output, 0, 0);
 

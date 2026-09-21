@@ -1,4 +1,5 @@
 #include "utils/Scope.hpp"
+#include <format>
 #include <iostream>
 
 std::unordered_map<std::string, std::unique_ptr<TypeKind>> typeTable = [] {
@@ -106,8 +107,10 @@ TypeKind *getArrType(const std::string &typeName, int numOfElements) {
 
     size_t arrSize = numOfElements * baseSize;
 
-    std::string newTypeName = typeName + "[]";
+    std::string newTypeName = std::format("{}[{}]", typeName, numOfElements);
 
+    if (typeTable.count(newTypeName)) return typeTable[newTypeName].get();
+        
     TypeKind arrType = {
         .type = TypeEnum::ARRAY, 
         .name = newTypeName,

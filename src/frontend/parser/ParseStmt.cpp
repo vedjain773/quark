@@ -206,34 +206,28 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             return nullptr;
         } break;
 
-        case TokenType::LEFT_CURLY: {
-            return ParseBlockStmt();
-        } break;
+        case TokenType::LEFT_CURLY: return ParseBlockStmt(); 
+        break;
 
         case TokenType::INT:
         case TokenType::CHAR:
-        case TokenType::UINT8: {
-            return ParseDeclStmt();
-        } break;
+        case TokenType::UINT8:
+        case TokenType::UINT16: return ParseDeclStmt();
+        break;
 
         case TokenType::STRUCT: {
-            if (peekAhead(2).tokentype == TokenType::LEFT_CURLY)
-                return ParseStructDecl();
-            else
-                return ParseDeclStmt();
+            if (peekAhead(2).tokentype == TokenType::LEFT_CURLY) return ParseStructDecl();
+            else return ParseDeclStmt();
         } break;
 
-        case TokenType::IF: {
-            return ParseIfStmt();
-        } break;
+        case TokenType::IF: return ParseIfStmt();
+        break;
 
-        case TokenType::WHILE: {
-            return ParseWhileStmt();
-        } break;
+        case TokenType::WHILE: return ParseWhileStmt();
+        break;
 
-        case TokenType::FOR: {
-            return ParseForStmt();
-        } break;
+        case TokenType::FOR: return ParseForStmt();
+        break;
 
         case TokenType::BREAK:
         case TokenType::CONTINUE: {
@@ -254,12 +248,9 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             return Result;
         } break;
 
-        case TokenType::RETURN: {
-            return ParseReturnStmt();
-        } break;
+        case TokenType::RETURN: return ParseReturnStmt();
+        break;
 
-        default: {
-            return ParseExprStmt();
-        }
+        default: return ParseExprStmt();
     }
 }

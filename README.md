@@ -31,8 +31,9 @@ Execute
 |-------------------|-----------------------|
 | --print-tokens    | Print tokens          |
 | --print-ast       | Print AST             |
-| --emit-llvm       | Print LLVM IR to a file |
-| -optimize         | Apply Optimizations   |
+| --print-llvm      | Print LLVM IR to a file |
+| --optimize        | Apply Optimizations   |
+| --no-compile      | Skip Codegeneration  | 
 | -o                | Emit Object file      |
 
 ## Overview
@@ -107,4 +108,4 @@ On the optimization front, the compiler applies a hand-written equivalent of LLV
 
 Check out the [examples folder](examples) to see sample programs compiled by Quark.
 
-This also includes pixelc, which compiles to WASM and serves as an alternative to JavaScript for image processing workflows such as grayscaling and color inversion. You can try it out at the [pixelc web demo](https://vedjain773.github.io/Quark/examples/pixelc/web/index.html).
+This also includes pixelc, which compiles to WASM and serves as an alternative to JavaScript for image processing workflows such as grayscaling and color inversion. You can try it out at the [pixelc web demo](https://vedjain773.github.io/quark/examples/pixelc/web/index.html).
