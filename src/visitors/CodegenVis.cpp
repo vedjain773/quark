@@ -8,6 +8,10 @@ void CodegenVis::initModule(const std::string &fileName) {
     Builder = std::make_unique<llvm::IRBuilder<>>(*Context);
 }
 
+void CodegenVis::setTarget(const std::string &target) {
+    targetString = target;
+}
+
 llvm::Value *CodegenVis::LogErrorV(const std::string &errMsg) {
     std::cerr << errMsg << "\n";
     return nullptr;
@@ -191,7 +195,9 @@ void CodegenVis::emitObj(const std::string &Filename) {
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
 
-    std::string TargetTripleStr = llvm::sys::getDefaultTargetTriple();
+    std::string TargetTripleStr = targetString.empty() ? llvm::sys::getDefaultTargetTriple()
+        : targetString;
+    
     llvm::Triple TargetTriple(TargetTripleStr);
     Module->setTargetTriple(TargetTriple);
 

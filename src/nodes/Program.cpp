@@ -39,6 +39,7 @@ void Program::opt() {
 
 void Program::codegen() {
     codegenvis.initModule(fileName);
+    codegenvis.setTarget(target);
 
     for (size_t i = 0; i < root.size(); i++) {
         root[i]->codegen(codegenvis);
@@ -63,4 +64,8 @@ void Program::emitObj(const std::string &fileName) {
 
 void Program::setFileName(const std::string &file_name) {
     fileName = file_name;
+}
+
+void Program::setTarget(const std::string &target) {
+    this->target = target;
 }

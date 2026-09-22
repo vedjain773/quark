@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
 
     std::string filename = argv[1];
     std::string destname = "output.o";
+    std::string target;
 
     for (int i = 2; i < argc; ++i) {
         std::string_view arg = argv[i];
@@ -37,6 +38,8 @@ int main(int argc, char **argv) {
             config.optimize = true;
         } else if (arg == "--no-compile") {
             config.notCompile = true;
+        } else if (arg == "--target") {
+            target = argv[++i];
         } else if (arg == "-o") {
             if (++i >= argc) {
                 std::cerr << "error: -o requires an argument\n";
@@ -63,8 +66,10 @@ int main(int argc, char **argv) {
     std::vector<Token> tokenlist = scanner.getTokenList();
 
     Parser parser(tokenlist);
+
     auto prog = parser.ParseProgram();
     prog->setFileName(filename);
+    prog->setTarget(target);
 
     int noErr = prog->semAnalyse();
 

@@ -33,20 +33,26 @@ Execute
 | --print-ast       | Print AST             |
 | --print-llvm      | Print LLVM IR to a file |
 | --optimize        | Apply Optimizations   |
-| --no-compile      | Skip Codegeneration  | 
+| --no-compile      | Skip Codegeneration   |
+| --target          | Specify triple target |
 | -o                | Emit Object file      |
 
-## Overview
+### Language Features
 
-This compiler implements a minimal but structured pipeline: a lexer tokenizes the source, a parser builds a strongly typed abstract syntax tree, semantic analysis performs scope resolution and type checking, code generation emits LLVM IR, and an optimizer applies LLVM passes on top of that IR.
+Quark supports `int` and `char` as base types, along with `uint8_t`/`uint16_t`, pointers, arrays (including multidimensional), and structs. Functions support parameters, direct and nested calls, and typed return statements.
 
-## Currently Supported Language Features
+Control flow includes if-else, while loops, for loops, and break/continue. Variables can be declared with optional initialization and are block-scoped, including nested scopes.
 
-Quark supports `int` and `char` as base types, along with the built-in `uint8_t` and `uint16_t` types, pointers, and user-defined arrays (including multidimensional arrays) and structs. On the function side, it handles function definitions and parameters, direct and nested function calls, and return statements with type validation.
+### Optimizations
 
-Control flow is covered through if-else blocks, while loops, for loops, and break and continue statements. Variables can be declared and optionally initialized at the point of declaration, and are properly block-scoped with correct handling of nested scopes. Integer and character literals are also supported as expressions.
+Quark applies a hand-written equivalent of LLVM's `mem2reg` pass, along with:
+- Power reductions
+- Simple algebraic transformations
+- Dead instruction elimination
+- Dead branch elimination
+- Constant propagation
 
-On the optimization front, the compiler applies a hand-written equivalent of LLVM's mem2reg pass, along with power reductions, simple algebraic transformations, dead instruction elimination, dead branch elimination, and constant propagation. An AST printer is also included for inspecting the parsed tree during development.
+An AST printer is also included for inspecting the parsed tree during development.
 
 ## Supported Operators
 
@@ -92,7 +98,7 @@ On the optimization front, the compiler applies a hand-written equivalent of LLV
 ### Assignment Operators
 | Operator | Description | Example |
 |---------|-------------|---------|
-| =     | Assignment                | a = 5 |
+| =     | Assignment                | a = 5  |
 | +=    | Addition assignment       | a += 5 |
 | -=    | Subtraction assignment    | a -= 5 |
 | *=    | Multiplication assignment | a *= 5 |
@@ -108,4 +114,6 @@ On the optimization front, the compiler applies a hand-written equivalent of LLV
 
 Check out the [examples folder](examples) to see sample programs compiled by Quark.
 
-This also includes pixelc, which compiles to WASM and serves as an alternative to JavaScript for image processing workflows such as grayscaling and color inversion. You can try it out at the [pixelc web demo](https://vedjain773.github.io/quark/examples/pixelc/web/index.html).
+- **Grayscale Filter** — [demo](https://vedjain773.github.io/quark/examples/pixelc/web/index.html)
+- **Inversion Filter** — [demo](https://vedjain773.github.io/quark/examples/pixelc/web/neg.html)
+- **Conway's Game of Life** — [demo](https://vedjain773.github.io/quark/examples/gol/web/index.html)

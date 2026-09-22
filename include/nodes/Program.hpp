@@ -11,12 +11,14 @@
 class Program {
   private:
     std::string fileName;
+    std::string target;
     CodegenVis codegenvis;
 
   public:
     std::vector<std::unique_ptr<ExternalDecl>> root;
 
     void setFileName(const std::string &file_name);
+    void setTarget(const std::string &target_name);
     void accept(Visitor &visitor);
     void add(std::unique_ptr<ExternalDecl> edecl);
 
