@@ -21,24 +21,19 @@ PreservedAnalyses Mem2Reg::run(Function &F, FunctionAnalysisManager &) {
 
     getPromAllocas();
     performLiveAnalysis();
-
     initDomSets();
 
-    while (!runIteration())
-        ;
+    while (!runIteration());
 
-    for (BasicBlock *BB : blockList)
-        iDoms[BB] = getIDom(BB);
+    for (BasicBlock *BB : blockList) iDoms[BB] = getIDom(BB);
 
     buildDomTree();
-
     getDomFrontiers();
 
     PlacePHINodes();
-
     renamePass();
-
     reset();
+
     return PreservedAnalyses::none();
 }
 
@@ -56,24 +51,6 @@ void Mem2Reg::initDomSets() {
             domSets[BB] = allNodeList;
         }
     }
-}
-
-ValSet Mem2Reg::getDiff(const ValSet &vs1, const ValSet &vs2) {
-    ValSet result;
-
-    std::set_difference(vs1.begin(), vs1.end(), vs2.begin(), vs2.end(),
-                        std::inserter(result, result.begin()));
-
-    return result;
-}
-
-ValSet Mem2Reg::getUnion(const ValSet &vs1, const ValSet &vs2) {
-    ValSet result;
-
-    std::set_union(vs1.begin(), vs1.end(), vs2.begin(), vs2.end(),
-                   std::inserter(result, result.begin()));
-
-    return result;
 }
 
 BlockSet Mem2Reg::getIntersection(const BlockSet &bs1, const BlockSet &bs2) {
@@ -218,7 +195,7 @@ void Mem2Reg::PlacePHINodes() {
         AllocaInst *allocainst = dyn_cast<AllocaInst>(value);
 
         for (BasicBlock *idfBlock : idfSites) {
-            if (!LiveInMap[idfBlock].count(value))
+            if (!LiveInMap[idfBlock][valIndex[value]])
                 continue;
 
             int num = pred_size(idfBlock);
@@ -253,10 +230,22 @@ void Mem2Reg::getPromAllocas() {
             }
         }
     }
+
+    unsigned i = 0;
+    for (Value *val: promotableAllocas) {
+        allocas.push_back(val);
+        valIndex.insert({val, i++});
+    }
+
+    for (BasicBlock *BB: blockList) {
+        UseMap[BB] = BitVector(i);
+        DefMap[BB] = BitVector(i);
+        LiveInMap[BB] = BitVector(i);
+        LiveOutMap[BB] = BitVector(i);
+    }
 }
 
 void Mem2Reg::performLiveAnalysis() {
-    // Fill DefMap and UseMap
     for (BasicBlock *BB : blockList) {
         std::set<Value *> seenDefs;
 
@@ -273,7 +262,7 @@ void Mem2Reg::performLiveAnalysis() {
                     continue;
 
                 seenDefs.insert(val);
-                DefMap[BB].insert(val);
+                DefMap[BB].set(valIndex[val]);
             }
 
             if (loadinst) {
@@ -283,28 +272,29 @@ void Mem2Reg::performLiveAnalysis() {
                     continue;
 
                 if (!seenDefs.count(val))
-                    UseMap[BB].insert(val);
+                    UseMap[BB].set(valIndex[val]);
             }
         }
     }
 
-    // Update LiveInMap and LiveOutMap until fixed point
     bool constant = false;
     while (!constant) {
         constant = true;
 
         for (BasicBlock *BB : blockVecList) {
-            ValSet liveInSet = getUnion(UseMap[BB], getDiff(LiveOutMap[BB], DefMap[BB]));
+            BitVector liveOut = LiveOutMap[BB];
+            BitVector liveInSet = UseMap[BB];
+            liveInSet |= liveOut.reset(DefMap[BB]);
 
             if (LiveInMap[BB] != liveInSet) {
                 constant = false;
                 LiveInMap[BB] = liveInSet;
             }
 
-            ValSet liveOutSet;
+            BitVector liveOutSet;
 
             for (BasicBlock *succ : successors(BB)) {
-                liveOutSet = getUnion(liveOutSet, LiveInMap[succ]);
+                liveOutSet |= LiveInMap[succ];
             }
 
             if (liveOutSet != LiveOutMap[BB]) {

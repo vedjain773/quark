@@ -6,6 +6,9 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "llvm/ADT/BitVector.h"
+#include "llvm/ADT/DenseMap.h"
+
 #include <iostream>
 #include <map>
 #include <set>
@@ -14,6 +17,7 @@
 #include <vector>
 
 namespace llvm {
+
 using BlockVec = std::vector<BasicBlock *>;
 using BlockSet = std::set<BasicBlock *>;
 using ValSet = std::set<Value *>;
@@ -21,6 +25,9 @@ using domMap = std::map<BasicBlock *, BlockSet>;
 
 class Mem2Reg : public PassInfoMixin<Mem2Reg> {
   private:
+    DenseMap<Value*, unsigned> valIndex;
+    std::vector<Value*> allocas;
+
     BlockSet blockList;
     domMap domSets;
     std::map<BasicBlock *, BasicBlock *> iDoms;
@@ -34,14 +41,20 @@ class Mem2Reg : public PassInfoMixin<Mem2Reg> {
     std::map<Value *, int> counter;
 
     // Live analysis
-    std::map<BasicBlock *, ValSet> UseMap;
-    std::map<BasicBlock *, ValSet> DefMap;
-    std::map<BasicBlock *, ValSet> LiveInMap;
-    std::map<BasicBlock *, ValSet> LiveOutMap;
+    std::map<BasicBlock *, BitVector> UseMap;
+    std::map<BasicBlock *, BitVector> DefMap;
+    std::map<BasicBlock *, BitVector> LiveInMap;
+    std::map<BasicBlock *, BitVector> LiveOutMap;
 
-    void performLiveAnalysis();
+    std::set<Value *> promotableAllocas;
 
+    // Helper functions
     bool isEntryBlock(BasicBlock *BB);
+    bool isPredOf(BasicBlock *child, BasicBlock *Parent);
+    void reset();
+    std::string getNewName(Value *allocainst);
+    
+    void performLiveAnalysis();
 
     void initDomSets();
 
@@ -58,21 +71,16 @@ class Mem2Reg : public PassInfoMixin<Mem2Reg> {
     BlockSet computeIDF(BlockVec &defSites);
     BlockVec getDefSites(Value *allocainst);
     std::map<BasicBlock *, StoreInst *> getBlockDefs(AllocaInst *allocainst);
+    
     void PlacePHINodes();
-
-    bool isPredOf(BasicBlock *child, BasicBlock *Parent);
-
     void renamePass();
 
-    std::set<Value *> promotableAllocas;
     void getPromAllocas();
 
-    std::string getNewName(Value *allocainst);
     void rename(BasicBlock *);
-
-    void reset();
 
   public:
     PreservedAnalyses run(Function &F, FunctionAnalysisManager &);
 };
+
 }; // namespace llvm
