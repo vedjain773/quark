@@ -11,21 +11,25 @@ PreservedAnalyses Mem2Reg::run(Function &F, FunctionAnalysisManager &) {
 
     IRBuilder<> Builder = IRBuilder<>(F.getContext());
 
+    numBlocks = 0;
     for (BasicBlock &BB : F) {
         if (!isEntryBlock(&BB) && BB.hasNPredecessors(0))
             continue;
 
         blockList.insert(&BB);
         blockVecList.push_back(&BB);
+        blockIndex.insert({&BB, numBlocks++});
     }
 
     getPromAllocas();
     performLiveAnalysis();
     initDomSets();
 
-    while (!runIteration());
+    while (!runIteration())
+        ;
 
-    for (BasicBlock *BB : blockList) iDoms[BB] = getIDom(BB);
+    for (BasicBlock *BB : blockList)
+        iDoms[BB] = getIDom(BB);
 
     buildDomTree();
     getDomFrontiers();
@@ -44,22 +48,13 @@ bool Mem2Reg::isEntryBlock(BasicBlock *BB) {
 void Mem2Reg::initDomSets() {
     for (BasicBlock *BB : blockList) {
         if (isEntryBlock(BB)) {
-            BlockSet selfContList = {BB};
-            domSets[BB] = selfContList;
+            BitVector self(numBlocks);
+            self.set(blockIndex[BB]);
+            domSets[BB] = self;
         } else {
-            BlockSet allNodeList = blockList;
-            domSets[BB] = allNodeList;
+            domSets[BB] = BitVector(numBlocks, true);
         }
     }
-}
-
-BlockSet Mem2Reg::getIntersection(const BlockSet &bs1, const BlockSet &bs2) {
-    BlockSet result;
-
-    std::set_intersection(bs1.begin(), bs1.end(), bs2.begin(), bs2.end(),
-                          std::inserter(result, result.begin()));
-
-    return result;
 }
 
 bool Mem2Reg::runIteration() {
@@ -69,15 +64,15 @@ bool Mem2Reg::runIteration() {
         if (isEntryBlock(BB))
             continue;
 
-        BlockSet initialList = blockList;
+        BitVector initialList = BitVector(numBlocks, true);
 
         for (BasicBlock *Pred : predecessors(BB)) {
-            BlockSet predDomSet = domSets[Pred];
+            BitVector predDomSet = domSets[Pred];
 
-            initialList = getIntersection(initialList, predDomSet);
+            initialList &= predDomSet;
         }
 
-        initialList.insert(BB);
+        initialList.set(blockIndex[BB]);
 
         if (domSets[BB] != initialList) {
             changes++;
@@ -89,27 +84,16 @@ bool Mem2Reg::runIteration() {
 }
 
 BasicBlock *Mem2Reg::getIDom(BasicBlock *BB) {
-    BlockSet strictDomSet = domSets[BB];
-    strictDomSet.erase(BB);
+    BitVector strictDomSet = domSets[BB];
+    strictDomSet.reset(blockIndex[BB]);
 
-    BlockVec strictDomVec(strictDomSet.begin(), strictDomSet.end());
+    for (unsigned idx : strictDomSet.set_bits()) {
+        BasicBlock *cand = blockVecList[idx];
 
-    for (size_t i = 0; i < strictDomVec.size(); i++) {
-
-        bool allBlocksFound = true;
-        BlockSet currBlockList = domSets[strictDomVec[i]];
-
-        for (size_t j = 0; j < strictDomVec.size(); j++) {
-
-            if (i == j)
-                continue;
-
-            if (currBlockList.count(strictDomVec[j]) == 0)
-                allBlocksFound = false;
-        }
-
-        if (allBlocksFound)
-            return strictDomVec[i];
+        BitVector missing = strictDomSet;
+        missing.reset(domSets[cand]);
+        if (!missing.any())
+            return cand;
     }
 
     return nullptr;
@@ -117,7 +101,7 @@ BasicBlock *Mem2Reg::getIDom(BasicBlock *BB) {
 
 void Mem2Reg::buildDomTree() {
     for (BasicBlock *BB : blockList) {
-        BlockSet valSet;
+        std::set<BasicBlock *> valSet;
 
         for (BasicBlock *BBInner : blockList) {
             if (iDoms[BBInner] == BB)
@@ -144,9 +128,9 @@ void Mem2Reg::getDomFrontiers() {
     }
 }
 
-BlockSet Mem2Reg::computeIDF(BlockVec &defSites) {
-    BlockSet result;
-    BlockVec workList = defSites;
+std::set<BasicBlock *> Mem2Reg::computeIDF(std::vector<BasicBlock *> &defSites) {
+    std::set<BasicBlock *> result;
+    std::vector<BasicBlock *> workList = defSites;
 
     while (!workList.empty()) {
         BasicBlock *B = workList[workList.size() - 1];
@@ -163,8 +147,8 @@ BlockSet Mem2Reg::computeIDF(BlockVec &defSites) {
     return result;
 }
 
-BlockVec Mem2Reg::getDefSites(Value *allocainst) {
-    BlockVec defsites;
+std::vector<BasicBlock *> Mem2Reg::getDefSites(Value *allocainst) {
+    std::vector<BasicBlock *> defsites;
     for (User *U : allocainst->users()) {
         StoreInst *SI = dyn_cast<StoreInst>(U);
 
@@ -188,9 +172,9 @@ std::map<BasicBlock *, StoreInst *> Mem2Reg::getBlockDefs(AllocaInst *allocainst
 
 void Mem2Reg::PlacePHINodes() {
     for (Value *value : promotableAllocas) {
-        BlockVec defsites = getDefSites(value);
+        std::vector<BasicBlock *> defsites = getDefSites(value);
 
-        BlockSet idfSites = computeIDF(defsites);
+        std::set<BasicBlock *> idfSites = computeIDF(defsites);
 
         AllocaInst *allocainst = dyn_cast<AllocaInst>(value);
 
@@ -232,12 +216,12 @@ void Mem2Reg::getPromAllocas() {
     }
 
     unsigned i = 0;
-    for (Value *val: promotableAllocas) {
+    for (Value *val : promotableAllocas) {
         allocas.push_back(val);
         valIndex.insert({val, i++});
     }
 
-    for (BasicBlock *BB: blockList) {
+    for (BasicBlock *BB : blockList) {
         UseMap[BB] = BitVector(i);
         DefMap[BB] = BitVector(i);
         LiveInMap[BB] = BitVector(i);
@@ -247,8 +231,6 @@ void Mem2Reg::getPromAllocas() {
 
 void Mem2Reg::performLiveAnalysis() {
     for (BasicBlock *BB : blockList) {
-        std::set<Value *> seenDefs;
-
         for (auto it = BB->begin(); it != BB->end();) {
             Instruction &I = *it++;
 
@@ -261,7 +243,6 @@ void Mem2Reg::performLiveAnalysis() {
                 if (!promotableAllocas.count(val))
                     continue;
 
-                seenDefs.insert(val);
                 DefMap[BB].set(valIndex[val]);
             }
 
@@ -271,7 +252,7 @@ void Mem2Reg::performLiveAnalysis() {
                 if (!promotableAllocas.count(val))
                     continue;
 
-                if (!seenDefs.count(val))
+                if (!DefMap[BB][valIndex[val]])
                     UseMap[BB].set(valIndex[val]);
             }
         }
@@ -430,12 +411,17 @@ void Mem2Reg::rename(BasicBlock *BB) {
 }
 
 void Mem2Reg::reset() {
+    numBlocks = 0;
+
+    valIndex.clear();
+    allocas.clear();
+    blockIndex.clear();
+
     blockList.clear();
     domSets.clear();
     iDoms.clear();
     domTree.clear();
     domFrontier.clear();
-    iDF.clear();
 
     blockVecList.clear();
     valPhiPos.clear();

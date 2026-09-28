@@ -18,24 +18,21 @@
 
 namespace llvm {
 
-using BlockVec = std::vector<BasicBlock *>;
-using BlockSet = std::set<BasicBlock *>;
-using ValSet = std::set<Value *>;
-using domMap = std::map<BasicBlock *, BlockSet>;
-
 class Mem2Reg : public PassInfoMixin<Mem2Reg> {
   private:
-    DenseMap<Value*, unsigned> valIndex;
-    std::vector<Value*> allocas;
+    DenseMap<Value *, unsigned> valIndex;
+    std::vector<Value *> allocas;
 
-    BlockSet blockList;
-    domMap domSets;
+    DenseMap<BasicBlock *, unsigned> blockIndex;
+    unsigned numBlocks = 0;
+
+    std::set<BasicBlock *> blockList;
+    std::map<BasicBlock *, BitVector> domSets;
     std::map<BasicBlock *, BasicBlock *> iDoms;
-    domMap domTree;
-    domMap domFrontier;
-    domMap iDF;
+    std::map<BasicBlock *, std::set<BasicBlock *>> domTree;
+    std::map<BasicBlock *, std::set<BasicBlock *>> domFrontier;
 
-    BlockVec blockVecList;
+    std::vector<BasicBlock *> blockVecList;
     std::map<Value *, std::set<PHINode *>> valPhiPos;
     std::map<Value *, std::stack<Value *>> allocaValStack;
     std::map<Value *, int> counter;
@@ -53,14 +50,9 @@ class Mem2Reg : public PassInfoMixin<Mem2Reg> {
     bool isPredOf(BasicBlock *child, BasicBlock *Parent);
     void reset();
     std::string getNewName(Value *allocainst);
-    
+
     void performLiveAnalysis();
-
     void initDomSets();
-
-    ValSet getDiff(const ValSet &vs1, const ValSet &vs2);
-    ValSet getUnion(const ValSet &vs1, const ValSet &vs2);
-    BlockSet getIntersection(const BlockSet &bs1, const BlockSet &bs2);
     bool runIteration();
 
     BasicBlock *getIDom(BasicBlock *BB);
@@ -68,15 +60,13 @@ class Mem2Reg : public PassInfoMixin<Mem2Reg> {
 
     void getDomFrontiers();
 
-    BlockSet computeIDF(BlockVec &defSites);
-    BlockVec getDefSites(Value *allocainst);
+    std::set<BasicBlock *> computeIDF(std::vector<BasicBlock *> &defSites);
+    std::vector<BasicBlock *> getDefSites(Value *allocainst);
     std::map<BasicBlock *, StoreInst *> getBlockDefs(AllocaInst *allocainst);
-    
+
     void PlacePHINodes();
     void renamePass();
-
     void getPromAllocas();
-
     void rename(BasicBlock *);
 
   public:
