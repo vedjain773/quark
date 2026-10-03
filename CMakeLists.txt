@@ -14,21 +14,18 @@ find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-file(GLOB SRC_FILES
-    src/*.cpp
-    src/frontend/scanner/*.cpp
-    src/frontend/parser/*.cpp
-    src/nodes/*.cpp
-    src/nodes/expression/*.cpp
-    src/nodes/external/*.cpp
-    src/nodes/statement/*.cpp
-    src/nodes/function/*.cpp
-    src/visitors/*.cpp
-    src/passes/*.cpp
-    src/utils/*.cpp
+add_executable(quark)
+
+target_sources(quark PRIVATE
+    src/main.cpp
+    src/Optimizer.cpp
 )
 
-add_executable(quark ${SRC_FILES})
+add_subdirectory(src/frontend)
+add_subdirectory(src/nodes)
+add_subdirectory(src/passes)
+add_subdirectory(src/utils)
+add_subdirectory(src/visitors)
 
 target_include_directories(quark PRIVATE
     include
