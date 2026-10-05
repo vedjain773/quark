@@ -34,8 +34,7 @@ std::unique_ptr<Expression> Parser::ParseParenExpr() {
 
     auto Result = ParseExpr();
 
-    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'")) return nullptr;
 
     return Result;
 }
@@ -194,10 +193,8 @@ std::unique_ptr<Expression> Parser::ParseUnaryExpr() {
             getNextToken();
             auto expr = ParseUnaryExpr();
 
-            if (isDeref)
-                return std::make_unique<DerefExpr>(std::move(expr), line, column);
-            else
-                return std::make_unique<AddressExpr>(std::move(expr), line, column);
+            if (isDeref) return std::make_unique<DerefExpr>(std::move(expr), line, column);
+            else return std::make_unique<AddressExpr>(std::move(expr), line, column);
 
         } break;
 

@@ -30,8 +30,7 @@ void FuncDef::codegen(CodegenVis &codegenvis) {
 
     llvm::Function *func = Mod->getFunction(prototype->funcName);
 
-    if (!func)
-        func = prototype->codegen(codegenvis);
+    if (!func) func = prototype->codegen(codegenvis);
 
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*Cxt, "entry", func);
     Bldr->SetInsertPoint(BB);
@@ -57,8 +56,7 @@ void FuncDef::codegen(CodegenVis &codegenvis) {
 
     if (prototype->retType == getType("void")) {
         llvm::BasicBlock &lastBlock = func->back();
-        if (lastBlock.getTerminator() == nullptr)
-            Bldr->CreateRetVoid();
+        if (lastBlock.getTerminator() == nullptr) Bldr->CreateRetVoid();
     }
 
     llvm::verifyFunction(*func);

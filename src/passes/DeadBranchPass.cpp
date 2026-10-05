@@ -9,8 +9,7 @@ PreservedAnalyses DeadBranchPass::run(Function &F, FunctionAnalysisManager &) {
     for (BasicBlock &BB : F) {
         Instruction *I = BB.getTerminator();
 
-        if (!I)
-            continue;
+        if (!I) continue;
 
         Builder.SetInsertPoint(I);
 
@@ -43,8 +42,7 @@ PreservedAnalyses DeadBranchPass::run(Function &F, FunctionAnalysisManager &) {
 
                 dead->removePredecessor(&BB);
 
-                if (dead->hasNPredecessors(0))
-                    dead->eraseFromParent();
+                if (dead->hasNPredecessors(0)) dead->eraseFromParent();
             }
         }
     }

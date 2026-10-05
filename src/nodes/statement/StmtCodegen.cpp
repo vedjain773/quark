@@ -9,8 +9,7 @@ void BlockStmt::codegen(CodegenVis &codegenvis) {
     for (size_t i = 0; i < statements.size(); i++) {
         statements[i]->codegen(codegenvis);
 
-        if (statements[i]->isTerminator())
-            break;
+        if (statements[i]->isTerminator()) break;
     }
     codegenvis.popScope();
 }
@@ -162,8 +161,7 @@ void ForStmt::codegen(CodegenVis &codegenvis) {
     if (Bldr->GetInsertBlock()->getTerminator() == nullptr) {
         Bldr->CreateBr(iterBB);
     } else {
-        if (iterBB->hasNPredecessors(0))
-            iterBB->eraseFromParent();
+        if (iterBB->hasNPredecessors(0)) iterBB->eraseFromParent();
     }
 
     func->insert(func->end(), afterBB);

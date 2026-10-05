@@ -13,8 +13,7 @@ PreservedAnalyses Mem2Reg::run(Function &F, FunctionAnalysisManager &) {
 
     numBlocks = 0;
     for (BasicBlock &BB : F) {
-        if (!isEntryBlock(&BB) && BB.hasNPredecessors(0))
-            continue;
+        if (!isEntryBlock(&BB) && BB.hasNPredecessors(0)) continue;
 
         blockList.insert(&BB);
         blockVecList.push_back(&BB);
@@ -61,8 +60,7 @@ bool Mem2Reg::runIteration() {
     int changes = 0;
 
     for (BasicBlock *BB : blockList) {
-        if (isEntryBlock(BB))
-            continue;
+        if (isEntryBlock(BB)) continue;
 
         BitVector initialList = BitVector(numBlocks, true);
 
@@ -92,8 +90,7 @@ BasicBlock *Mem2Reg::getIDom(BasicBlock *BB) {
 
         BitVector missing = strictDomSet;
         missing.reset(domSets[cand]);
-        if (!missing.any())
-            return cand;
+        if (!missing.any()) return cand;
     }
 
     return nullptr;
@@ -104,8 +101,7 @@ void Mem2Reg::buildDomTree() {
         std::set<BasicBlock *> valSet;
 
         for (BasicBlock *BBInner : blockList) {
-            if (iDoms[BBInner] == BB)
-                valSet.insert(BBInner);
+            if (iDoms[BBInner] == BB) valSet.insert(BBInner);
         }
 
         domTree[BB] = valSet;
@@ -114,8 +110,7 @@ void Mem2Reg::buildDomTree() {
 
 void Mem2Reg::getDomFrontiers() {
     for (BasicBlock *BB : blockList) {
-        if (isEntryBlock(BB) || !BB->hasNPredecessorsOrMore(2))
-            continue;
+        if (isEntryBlock(BB) || !BB->hasNPredecessorsOrMore(2)) continue;
 
         for (BasicBlock *Pred : predecessors(BB)) {
             BasicBlock *currentNode = Pred;
@@ -152,8 +147,7 @@ std::vector<BasicBlock *> Mem2Reg::getDefSites(Value *allocainst) {
     for (User *U : allocainst->users()) {
         StoreInst *SI = dyn_cast<StoreInst>(U);
 
-        if (SI)
-            defsites.push_back(SI->getParent());
+        if (SI) defsites.push_back(SI->getParent());
     }
 
     return defsites;
@@ -163,8 +157,7 @@ std::map<BasicBlock *, StoreInst *> Mem2Reg::getBlockDefs(AllocaInst *allocainst
     std::map<BasicBlock *, StoreInst *> blockDefs;
 
     for (User *U : allocainst->users()) {
-        if (StoreInst *SI = dyn_cast<StoreInst>(U))
-            blockDefs[SI->getParent()] = SI;
+        if (StoreInst *SI = dyn_cast<StoreInst>(U)) blockDefs[SI->getParent()] = SI;
     }
 
     return blockDefs;
@@ -179,8 +172,7 @@ void Mem2Reg::PlacePHINodes() {
         AllocaInst *allocainst = dyn_cast<AllocaInst>(value);
 
         for (BasicBlock *idfBlock : idfSites) {
-            if (!LiveInMap[idfBlock][valIndex[value]])
-                continue;
+            if (!LiveInMap[idfBlock][valIndex[value]]) continue;
 
             int num = pred_size(idfBlock);
 
@@ -194,8 +186,7 @@ void Mem2Reg::PlacePHINodes() {
 
 bool Mem2Reg::isPredOf(BasicBlock *child, BasicBlock *Parent) {
     for (BasicBlock *Pred : predecessors(child)) {
-        if (Pred == Parent)
-            return true;
+        if (Pred == Parent) return true;
     }
 
     return false;
@@ -203,8 +194,7 @@ bool Mem2Reg::isPredOf(BasicBlock *child, BasicBlock *Parent) {
 
 void Mem2Reg::getPromAllocas() {
     for (BasicBlock *BB : blockList) {
-        if (!isEntryBlock(BB))
-            continue;
+        if (!isEntryBlock(BB)) continue;
 
         for (Instruction &I : *BB) {
             AllocaInst *allInst = dyn_cast<AllocaInst>(&I);
@@ -240,8 +230,7 @@ void Mem2Reg::performLiveAnalysis() {
             if (storeinst) {
                 Value *val = storeinst->getOperand(1);
 
-                if (!promotableAllocas.count(val))
-                    continue;
+                if (!promotableAllocas.count(val)) continue;
 
                 DefMap[BB].set(valIndex[val]);
             }
@@ -249,11 +238,9 @@ void Mem2Reg::performLiveAnalysis() {
             if (loadinst) {
                 Value *val = loadinst->getOperand(0);
 
-                if (!promotableAllocas.count(val))
-                    continue;
+                if (!promotableAllocas.count(val)) continue;
 
-                if (!DefMap[BB][valIndex[val]])
-                    UseMap[BB].set(valIndex[val]);
+                if (!DefMap[BB][valIndex[val]]) UseMap[BB].set(valIndex[val]);
             }
         }
     }
@@ -301,8 +288,7 @@ std::string Mem2Reg::getNewName(Value *allocainst) {
 
 void Mem2Reg::renamePass() {
     for (BasicBlock *BB : blockList) {
-        if (!isEntryBlock(BB))
-            continue;
+        if (!isEntryBlock(BB)) continue;
 
         for (Instruction &I : *BB) {
             AllocaInst *allInst = dyn_cast<AllocaInst>(&I);
@@ -320,8 +306,7 @@ void Mem2Reg::rename(BasicBlock *BB) {
     for (PHINode &phiNode : BB->phis()) {
         Value *allocainst = nullptr;
         for (auto element : valPhiPos) {
-            if (element.second.count(&phiNode))
-                allocainst = element.first;
+            if (element.second.count(&phiNode)) allocainst = element.first;
         }
 
         phiNode.setName(getNewName(allocainst));
@@ -343,8 +328,7 @@ void Mem2Reg::rename(BasicBlock *BB) {
         if (loadinst) {
             Value *ptrVal = loadinst->getOperand(0);
 
-            if (!promotableAllocas.count(ptrVal))
-                continue;
+            if (!promotableAllocas.count(ptrVal)) continue;
 
             Value *currVal = allocaValStack[ptrVal].top();
 
@@ -357,24 +341,20 @@ void Mem2Reg::rename(BasicBlock *BB) {
         for (PHINode &phiNode : successor->phis()) {
             Value *allocainst = nullptr;
             for (auto element : valPhiPos) {
-                if (element.second.count(&phiNode))
-                    allocainst = element.first;
+                if (element.second.count(&phiNode)) allocainst = element.first;
             }
 
-            if (!allocaValStack.count(allocainst))
-                continue;
+            if (!allocaValStack.count(allocainst)) continue;
 
             Value *val = allocaValStack[allocainst].top();
 
             bool found = false;
 
             for (BasicBlock *phiBB : phiNode.blocks()) {
-                if (phiBB == BB)
-                    found = true;
+                if (phiBB == BB) found = true;
             }
 
-            if (!found)
-                phiNode.addIncoming(val, BB);
+            if (!found) phiNode.addIncoming(val, BB);
         }
     }
 
@@ -386,24 +366,21 @@ void Mem2Reg::rename(BasicBlock *BB) {
         StoreInst *storeinst = dyn_cast<StoreInst>(&I);
         AllocaInst *allocainst = dyn_cast<AllocaInst>(&I);
 
-        if (allocainst && isAllocaPromotable(allocainst))
-            I.eraseFromParent();
+        if (allocainst && isAllocaPromotable(allocainst)) I.eraseFromParent();
 
         if (storeinst) {
             Value *ptrVal = storeinst->getOperand(1);
 
             allocaValStack[ptrVal].pop();
 
-            if (promotableAllocas.count(ptrVal))
-                I.eraseFromParent();
+            if (promotableAllocas.count(ptrVal)) I.eraseFromParent();
         }
     }
 
     for (PHINode &phiNode : BB->phis()) {
         Value *allocainst = nullptr;
         for (auto element : valPhiPos) {
-            if (element.second.count(&phiNode))
-                allocainst = element.first;
+            if (element.second.count(&phiNode)) allocainst = element.first;
         }
 
         allocaValStack[allocainst].pop();

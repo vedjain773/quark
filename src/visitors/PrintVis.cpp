@@ -126,8 +126,7 @@ void PrintVisitor::visitBlockStmt(BlockStmt &blockstmt) {
     depth += 1;
 
     for (auto &stmt : blockstmt.statements) {
-        if (stmt != nullptr)
-            stmt->accept(*this);
+        if (stmt != nullptr) stmt->accept(*this);
     }
 
     depth -= 1;

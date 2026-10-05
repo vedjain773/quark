@@ -13,8 +13,7 @@ PreservedAnalyses ConstantPropPass::run(Function &F, FunctionAnalysisManager &) 
             Builder.SetInsertPoint(&I);
 
             ICmpInst *icmpinst = dyn_cast<ICmpInst>(&I);
-            if (!I.isBinaryOp() && !icmpinst)
-                continue;
+            if (!I.isBinaryOp() && !icmpinst) continue;
 
             Value *op1 = I.getOperand(0);
             Value *op2 = I.getOperand(1);
@@ -22,8 +21,7 @@ PreservedAnalyses ConstantPropPass::run(Function &F, FunctionAnalysisManager &) 
             ConstantInt *cst1 = dyn_cast<ConstantInt>(op1);
             ConstantInt *cst2 = dyn_cast<ConstantInt>(op2);
 
-            if (!cst1 || !cst2)
-                continue;
+            if (!cst1 || !cst2) continue;
 
             APInt val1 = cst1->getValue();
             APInt val2 = cst2->getValue();

@@ -11,8 +11,7 @@ PreservedAnalyses IdentityPass::run(Function &F, FunctionAnalysisManager &) {
             Instruction &I = *it++;
             Builder.SetInsertPoint(&I);
 
-            if (!I.isBinaryOp(*I.getOpcodeName()))
-                continue;
+            if (!I.isBinaryOp(*I.getOpcodeName())) continue;
 
             auto transform = [&I](ConstantInt *cst, Value *other, int iden) {
                 if (cst) {

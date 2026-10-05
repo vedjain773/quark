@@ -1,56 +1,52 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
+Standard: Latest
 
-ColumnLimit: 100
+# Indentation
 IndentWidth: 4
 ContinuationIndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
 AccessModifierOffset: -2
-PointerAlignment: Right
-ReferenceAlignment: Pointer
-
-BreakBeforeBraces: Attach
-BraceWrapping:
-  AfterControlStatement: Never
-  AfterFunction: false
-  AfterClass: false
-  SplitEmptyFunction: true
-  SplitEmptyRecord: true
-  SplitEmptyNamespace: true
-
-# Less dense constructor initializer lists
-BreakConstructorInitializers: BeforeColon
-PackConstructorInitializers: Never
-ConstructorInitializerIndentWidth: 4
-
-# Keep argument lists compact, but not initializer lists
-BinPackArguments: true
-BinPackParameters: true
-
-# Expand short functions
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortBlocksOnASingleLine: Never
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
-AllowShortLambdasOnASingleLine: Inline
-AllowShortEnumsOnASingleLine: true
-
-# Improve visual separation
-SeparateDefinitionBlocks: Always
-MaxEmptyLinesToKeep: 1
-
 IndentCaseLabels: true
 IndentCaseBlocks: false
 NamespaceIndentation: None
+IndentPPDirectives: AfterHash
 
+# Braces
+BreakBeforeBraces: Attach
+
+# Pointers and references
+PointerAlignment: Right
+ReferenceAlignment: Pointer
+
+# Wrapping
+AlignAfterOpenBracket: Align
+BinPackArguments: true
+BinPackParameters: true
+BreakBeforeBinaryOperators: NonAssignment
+
+# Constructor initializers: one per line, comma-last
+BreakConstructorInitializers: AfterColon
+PackConstructorInitializers: Never
+ConstructorInitializerIndentWidth: 4
+SpaceBeforeCtorInitializerColon: true
+
+# Short constructs: only empty functions stay on one line
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+
+# Blank lines
+SeparateDefinitionBlocks: Always
+MaxEmptyLinesToKeep: 1
+
+# Includes
 SortIncludes: CaseSensitive
 IncludeBlocks: Preserve
-
-SpaceBeforeParens: ControlStatements
-SpaceBeforeCtorInitializerColon: true
-SpaceBeforeInheritanceColon: true
-SpacesInAngles: Never
-SpaceAfterTemplateKeyword: true
-
-Standard: Latest
-UseTab: Never

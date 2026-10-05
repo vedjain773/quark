@@ -11,14 +11,11 @@ PreservedAnalyses DeadInstPass::run(Function &F, FunctionAnalysisManager &) {
             Instruction &I = *it++;
             Builder.SetInsertPoint(&I);
 
-            if (I.mayHaveSideEffects())
-                continue;
+            if (I.mayHaveSideEffects()) continue;
 
-            if (I.isTerminator())
-                continue;
+            if (I.isTerminator()) continue;
 
-            if (I.use_empty() && I.isSafeToRemove())
-                I.eraseFromParent();
+            if (I.use_empty() && I.isSafeToRemove()) I.eraseFromParent();
         }
     }
 

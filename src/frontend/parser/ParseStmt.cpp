@@ -6,8 +6,7 @@
 std::unique_ptr<Statement> Parser::ParseExprStmt() {
     std::unique_ptr<Expression> expr = ParseExpr();
 
-    if (!expectAndConsume(TokenType::SEMICOLON, "Missing ';' after expression"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::SEMICOLON, "Missing ';' after expression")) return nullptr;
 
     return std::make_unique<ExprStmt>(std::move(expr));
 }
@@ -19,8 +18,7 @@ std::unique_ptr<BlockStmt> Parser::ParseBlockStmt() {
     while (peekCurr().tokentype != TokenType::RIGHT_CURLY) {
         auto stmt = ParseStmt();
 
-        if (stmt)
-            Result->addStmt(std::move(stmt));
+        if (stmt) Result->addStmt(std::move(stmt));
 
         if (peekCurr().tokentype == TokenType::END_OF_FILE) {
             expect(peekCurr(), "Expected '}'");
@@ -35,13 +33,11 @@ std::unique_ptr<BlockStmt> Parser::ParseBlockStmt() {
 std::unique_ptr<Statement> Parser::ParseIfStmt() {
     getNextToken();
 
-    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after if"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after if")) return nullptr;
 
     auto condn = ParseExpr();
 
-    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'")) return nullptr;
 
     auto ifbody = ParseStmt();
 
@@ -50,8 +46,7 @@ std::unique_ptr<Statement> Parser::ParseIfStmt() {
 }
 
 std::unique_ptr<Statement> Parser::ParseElseStmt() {
-    if (peekCurr().tokentype != TokenType::ELSE)
-        return nullptr;
+    if (peekCurr().tokentype != TokenType::ELSE) return nullptr;
 
     getNextToken();
 
@@ -62,13 +57,11 @@ std::unique_ptr<Statement> Parser::ParseElseStmt() {
 std::unique_ptr<Statement> Parser::ParseWhileStmt() {
     getNextToken();
 
-    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after while"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after while")) return nullptr;
 
     auto condn = ParseExpr();
 
-    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'")) return nullptr;
 
     auto whilebody = ParseStmt();
     return std::make_unique<WhileStmt>(std::move(condn), std::move(whilebody));
@@ -77,8 +70,7 @@ std::unique_ptr<Statement> Parser::ParseWhileStmt() {
 std::unique_ptr<Statement> Parser::ParseForStmt() {
     getNextToken();
 
-    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after for"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after for")) return nullptr;
 
     std::unique_ptr<Statement> init;
 
@@ -99,8 +91,7 @@ std::unique_ptr<Statement> Parser::ParseForStmt() {
     } else {
         condn = ParseExpr();
 
-        if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'"))
-            return nullptr;
+        if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'")) return nullptr;
     }
 
     if (peekCurr().tokentype == TokenType::RIGHT_ROUND) {
@@ -109,8 +100,7 @@ std::unique_ptr<Statement> Parser::ParseForStmt() {
     } else {
         iter = ParseExpr();
 
-        if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-            return nullptr;
+        if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'")) return nullptr;
     }
 
     auto body = ParseStmt();
@@ -162,8 +152,7 @@ std::unique_ptr<StructDecl> Parser::ParseStructDecl() {
     auto Result = std::make_unique<StructDecl>(tag, line, column);
     getNextToken();
 
-    if (!expectAndConsume(TokenType::LEFT_CURLY, "Expected '{'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::LEFT_CURLY, "Expected '{'")) return nullptr;
 
     int offset = 0;
 
@@ -173,8 +162,7 @@ std::unique_ptr<StructDecl> Parser::ParseStructDecl() {
         int fieldAlign = structField->type->align;
         int fieldSize = structField->type->size;
 
-        if (offset % fieldAlign != 0)
-            offset += fieldAlign - offset % fieldAlign;
+        if (offset % fieldAlign != 0) offset += fieldAlign - offset % fieldAlign;
 
         offset += fieldSize;
 
@@ -182,14 +170,11 @@ std::unique_ptr<StructDecl> Parser::ParseStructDecl() {
         getNextToken();
     }
 
-    if (offset > 0)
-        structType->size = offset;
+    if (offset > 0) structType->size = offset;
 
-    if (!expectAndConsume(TokenType::RIGHT_CURLY, "Expected '}'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::RIGHT_CURLY, "Expected '}'")) return nullptr;
 
-    if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'")) return nullptr;
 
     return Result;
 }
@@ -206,28 +191,33 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             return nullptr;
         } break;
 
-        case TokenType::LEFT_CURLY: return ParseBlockStmt(); 
-        break;
+        case TokenType::LEFT_CURLY:
+            return ParseBlockStmt();
+            break;
 
         case TokenType::INT:
         case TokenType::CHAR:
         case TokenType::UINT8:
-        case TokenType::UINT16: return ParseDeclStmt();
-        break;
+        case TokenType::UINT16:
+            return ParseDeclStmt();
+            break;
 
         case TokenType::STRUCT: {
             if (peekAhead(2).tokentype == TokenType::LEFT_CURLY) return ParseStructDecl();
             else return ParseDeclStmt();
         } break;
 
-        case TokenType::IF: return ParseIfStmt();
-        break;
+        case TokenType::IF:
+            return ParseIfStmt();
+            break;
 
-        case TokenType::WHILE: return ParseWhileStmt();
-        break;
+        case TokenType::WHILE:
+            return ParseWhileStmt();
+            break;
 
-        case TokenType::FOR: return ParseForStmt();
-        break;
+        case TokenType::FOR:
+            return ParseForStmt();
+            break;
 
         case TokenType::BREAK:
         case TokenType::CONTINUE: {
@@ -242,15 +232,16 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             // consume break/Consume
             getNextToken();
 
-            if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'"))
-                return nullptr;
+            if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'")) return nullptr;
 
             return Result;
         } break;
 
-        case TokenType::RETURN: return ParseReturnStmt();
-        break;
+        case TokenType::RETURN:
+            return ParseReturnStmt();
+            break;
 
-        default: return ParseExprStmt();
+        default:
+            return ParseExprStmt();
     }
 }

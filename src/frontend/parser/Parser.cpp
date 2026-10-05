@@ -181,9 +181,9 @@ void Parser::advToSyncPoint() {
         getNextToken();
 }
 
-Parser::Parser(std::vector<Token> tokenlist)
-    : TokenList(tokenlist),
-      current(0) {}
+Parser::Parser(std::vector<Token> tokenlist) :
+    TokenList(tokenlist),
+    current(0) {}
 
 Token Parser::getNextToken() {
     if (current < TokenList.size()) {
@@ -234,7 +234,7 @@ std::unique_ptr<Expression> Parser::ParseDeclExpr() {
     }
 
     getNextToken();
-    return expr; 
+    return expr;
 }
 
 std::unique_ptr<ExternalDecl> Parser::ParseExDecl() {
@@ -242,7 +242,7 @@ std::unique_ptr<ExternalDecl> Parser::ParseExDecl() {
     auto [typek, name, tline, tcol] = typeNameData;
 
     if (peekCurr().tokentype == TokenType::LEFT_ROUND) {
-        auto proto = ParsePrototype(typeNameData); 
+        auto proto = ParsePrototype(typeNameData);
         auto block = ParseBlockStmt();
 
         return std::make_unique<FuncDef>(std::move(proto), std::move(block));

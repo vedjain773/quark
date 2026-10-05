@@ -85,17 +85,15 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    if (!config.notCompile) {
-        prog->codegen();
+    if (!config.notCompile) return 0;
 
-        if (config.optimize)
-            prog->opt();
+    prog->codegen();
 
-        if (config.printIR)
-            prog->emitIR();
+    if (config.optimize) prog->opt();
 
-        prog->emitObj(destname);
-    }
+    if (config.printIR) prog->emitIR();
+
+    prog->emitObj(destname);
 
     return 0;
 }

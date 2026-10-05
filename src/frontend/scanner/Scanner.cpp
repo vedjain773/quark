@@ -3,8 +3,8 @@
 #include <fstream>
 #include <iostream>
 
-Scanner::Scanner(std::string source_arg)
-    : source(source_arg) {}
+Scanner::Scanner(std::string source_arg) :
+    source(source_arg) {}
 
 void Scanner::scanFile() {
     std::ifstream file(source);
@@ -309,8 +309,7 @@ bool Scanner::lookAhead(char expEnd) {
         if (peekCurr() == expEnd) {
             isPresent = true;
 
-            if (expEnd == '\n')
-                line++;
+            if (expEnd == '\n') line++;
 
             getNextChar();
             break;

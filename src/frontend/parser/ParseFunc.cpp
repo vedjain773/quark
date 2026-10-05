@@ -10,7 +10,7 @@ std::unique_ptr<Parameter> Parser::ParseParameter() {
 }
 
 std::unique_ptr<Prototype> Parser::ParsePrototype() {
-    return ParsePrototype(getTypeNamePair()); 
+    return ParsePrototype(getTypeNamePair());
 }
 
 std::unique_ptr<Prototype> Parser::ParsePrototype(TypeNameInfo data) {
@@ -37,7 +37,7 @@ std::unique_ptr<Prototype> Parser::ParsePrototype(TypeNameInfo data) {
 
     getNextToken();
     return Result;
-}   
+}
 
 std::unique_ptr<FuncDef> Parser::ParseFuncDef() {
     auto proto = ParsePrototype();

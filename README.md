@@ -1,6 +1,6 @@
 ![quark](assets/Quark.png)
 
-Quark is a small compiler for a subset of the C language, written in C++ and targeting LLVM IR.
+Quark is a compiler for a subset of the C language, written in C++ and targeting LLVM IR.
 
 ## Usage
 Clone the repository
@@ -35,13 +35,17 @@ Execute
 | --optimize        | Apply Optimizations   |
 | --no-compile      | Skip Codegeneration   |
 | --target          | Specify triple target |
-| -o                | Emit Object file      |
+| -o                | Set destination file name |
 
-### Language Features
+### Compiler Features
 
-Quark supports `int` and `char` as base types, along with `uint8_t`/`uint16_t`, pointers, arrays (including multidimensional), and structs. Functions support parameters, direct and nested calls, and typed return statements.
+The compiler features a custom scanner responsible for tokenizing the source code into tokens and then makes use of a recursive descent parser to construct an abstract syntax tree from the token stream. The compiler also includes an semantic analyser which is responsible for assigning types to expressions and ensuring the semantic correctness of the source code.
 
-Control flow includes if-else, while loops, for loops, and break/continue. Variables can be declared with optional initialization and are block-scoped, including nested scopes.
+Once the semantic correctness of the program is validated, the compiler makes use of the LLVM compiler infrastructure for code generation to LLVM IR. Using LLVM enables quark to compile C code to any target architecture LLVM supports (a model which i'm a huge fan of!) 
+
+Although LLVM also unlocks the door to the world-class optimizations it brings to the table, the compiler uses custom handwritten optimization passes (using the LLVM pass manager) to optimize the generated IR.
+
+Also check out [Gluon](https://github.com/vedjain773/gluon)!
 
 ### Optimizations
 
@@ -53,6 +57,17 @@ Quark applies a hand-written equivalent of LLVM's `mem2reg` pass, along with:
 - Constant propagation
 
 An AST printer is also included for inspecting the parsed tree during development.
+
+## Supported language features
+- Integer types and expressions
+- Local and global variables
+- Pointers
+- Arrays (including multi-dimensional arrays)
+- Control flow through if-else blocks, while and for loops
+- Blocks and nested scopes
+- Break and continue statements
+- Comparison and arithmetic operators
+- Structs
 
 ## Supported Operators
 

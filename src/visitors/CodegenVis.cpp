@@ -19,8 +19,7 @@ llvm::Value *CodegenVis::LogErrorV(const std::string &errMsg) {
 
 llvm::Type *CodegenVis::tkToType(TypeKind *typek) {
 
-    if (typek == nullptr)
-        return nullptr;
+    if (typek == nullptr) return nullptr;
 
     TypeKind *intType = getType("int");
     TypeKind *charType = getType("char");
@@ -28,20 +27,15 @@ llvm::Type *CodegenVis::tkToType(TypeKind *typek) {
     TypeKind *uint16Type = getType("uint16_t");
     TypeKind *voidType = getType("void");
 
-    if (typek == intType)
-        return llvm::Type::getInt32Ty(*Context);
+    if (typek == intType) return llvm::Type::getInt32Ty(*Context);
 
-    else if (typek == uint8Type || typek == charType)
-        return llvm::Type::getInt8Ty(*Context);
+    else if (typek == uint8Type || typek == charType) return llvm::Type::getInt8Ty(*Context);
 
-    else if (typek == uint16Type)
-        return llvm::Type::getInt16Ty(*Context);
+    else if (typek == uint16Type) return llvm::Type::getInt16Ty(*Context);
 
-    else if (typek == voidType)
-        return llvm::Type::getVoidTy(*Context);
+    else if (typek == voidType) return llvm::Type::getVoidTy(*Context);
 
-    else if (isPointerType(typek))
-        return llvm::PointerType::get(*Context, 0);
+    else if (isPointerType(typek)) return llvm::PointerType::get(*Context, 0);
 
     else if (isArrayType(typek))
         return llvm::ArrayType::get(tkToType(typek->to), getNumElements(typek));
@@ -49,11 +43,10 @@ llvm::Type *CodegenVis::tkToType(TypeKind *typek) {
     else if (isStructType(typek))
         return llvm::StructType::getTypeByName(*Context, typek->name.substr(7));
 
-    else
-        return nullptr;
+    else return nullptr;
 }
 
-llvm::AllocaInst *CodegenVis::CreateEntryAlloca(llvm::Function *function, 
+llvm::AllocaInst *CodegenVis::CreateEntryAlloca(llvm::Function *function,
                                                 const std::string &varname, TypeKind *tk) {
     llvm::StringRef VarName(varname);
     llvm::IRBuilder<> tmpBldr(&function->getEntryBlock(), function->getEntryBlock().begin());
@@ -90,7 +83,7 @@ llvm::Value *CodegenVis::handleBinOp(const OpConfig &opconfig) {
 
         case Operators::DIVIDE: {
             if (infType->isSigned) return Bldr->CreateSDiv(left, right, "sdiv", false);
-            else return Bldr->CreateUDiv(left, right, "udiv", false); 
+            else return Bldr->CreateUDiv(left, right, "udiv", false);
         } break;
 
         case Operators::MODULUS: {
@@ -103,7 +96,7 @@ llvm::Value *CodegenVis::handleBinOp(const OpConfig &opconfig) {
 
             if (infType->isSigned) gt = Bldr->CreateICmpSGT(left, right, "compSGT");
             else gt = Bldr->CreateICmpUGT(left, right, "compUGT");
-            
+
             return Bldr->CreateZExt(gt, tkToType(infType), "ext");
         } break;
 
@@ -112,13 +105,13 @@ llvm::Value *CodegenVis::handleBinOp(const OpConfig &opconfig) {
 
             if (infType->isSigned) ge = Bldr->CreateICmpSGE(left, right, "compSGE");
             else ge = Bldr->CreateICmpUGE(left, right, "compUGE");
-            
+
             return Bldr->CreateZExt(ge, tkToType(infType), "ext");
         } break;
 
         case Operators::LESS: {
             llvm::Value *lt = nullptr;
-            
+
             if (infType->isSigned) lt = Bldr->CreateICmpSLT(left, right, "compSLT");
             else lt = Bldr->CreateICmpULT(left, right, "compULT");
 
@@ -127,7 +120,7 @@ llvm::Value *CodegenVis::handleBinOp(const OpConfig &opconfig) {
 
         case Operators::LESS_EQUALS: {
             llvm::Value *le = nullptr;
-            
+
             if (infType->isSigned) le = Bldr->CreateICmpSLE(left, right, "compSLE");
             else le = Bldr->CreateICmpULE(left, right, "compULE");
 
@@ -183,7 +176,7 @@ llvm::AllocaInst *CodegenVis::lookup(const std::string &name) {
 }
 
 llvm::GlobalVariable *CodegenVis::findGlobal(const std::string &name) {
-    if (globals.count(name) != 0) return globals[name];  
+    if (globals.count(name) != 0) return globals[name];
 
     return nullptr;
 }
@@ -195,9 +188,9 @@ void CodegenVis::emitObj(const std::string &Filename) {
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
 
-    std::string TargetTripleStr = targetString.empty() ? llvm::sys::getDefaultTargetTriple()
-        : targetString;
-    
+    std::string TargetTripleStr =
+        targetString.empty() ? llvm::sys::getDefaultTargetTriple() : targetString;
+
     llvm::Triple TargetTriple(TargetTripleStr);
     Module->setTargetTriple(TargetTriple);
 
@@ -213,8 +206,8 @@ void CodegenVis::emitObj(const std::string &Filename) {
     std::string Features = "";
 
     llvm::TargetOptions opt{};
-    auto TargetMachine = Target->createTargetMachine(
-            TargetTriple, CPU, Features, opt, llvm::Reloc::PIC_);
+    auto TargetMachine =
+        Target->createTargetMachine(TargetTriple, CPU, Features, opt, llvm::Reloc::PIC_);
 
     Module->setDataLayout(TargetMachine->createDataLayout());
 

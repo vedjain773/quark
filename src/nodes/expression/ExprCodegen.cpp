@@ -12,7 +12,7 @@ llvm::Value *CharExpr::codegen(CodegenVis &codegenvis) {
 
 llvm::Value *VarExpr::codegen(CodegenVis &codegenvis) {
     llvm::IRBuilder<> *Bldr = (codegenvis.Builder).get();
-    
+
     llvm::AllocaInst *alloca = codegenvis.lookup(Name);
     llvm::Type *type = nullptr;
     llvm::Value *src = nullptr;
@@ -20,7 +20,7 @@ llvm::Value *VarExpr::codegen(CodegenVis &codegenvis) {
     if (!alloca) {
         llvm::GlobalVariable *global = codegenvis.findGlobal(Name);
         if (global == nullptr) return codegenvis.LogErrorV("Use of undeclared variable: " + Name);
-        
+
         type = global->getValueType();
         src = global;
     } else {
@@ -37,8 +37,8 @@ llvm::Value *VarExpr::emitPtr(CodegenVis &codegenvis) {
     if (!alloca) {
         llvm::GlobalVariable *global = codegenvis.findGlobal(Name);
         if (global == nullptr) return codegenvis.LogErrorV("Use of undeclared variable: " + Name);
-        
-        return global;    
+
+        return global;
     }
 
     return alloca;
@@ -49,8 +49,7 @@ llvm::Value *DerefExpr::codegen(CodegenVis &codegenvis) {
 
     llvm::Value *ptr = expr->emitPtr(codegenvis);
 
-    if (isPointerType(expr->infType))
-        ptr = expr->codegen(codegenvis);
+    if (isPointerType(expr->infType)) ptr = expr->codegen(codegenvis);
 
     llvm::Type *type = nullptr;
 
@@ -62,8 +61,7 @@ llvm::Value *DerefExpr::codegen(CodegenVis &codegenvis) {
 
 llvm::Value *DerefExpr::emitPtr(CodegenVis &codegenvis) {
 
-    if (isArrayType(expr->infType))
-        return expr->emitPtr(codegenvis);
+    if (isArrayType(expr->infType)) return expr->emitPtr(codegenvis);
 
     return expr->codegen(codegenvis);
 }
@@ -119,8 +117,7 @@ llvm::Value *BinaryExpr::codegen(CodegenVis &codegenvis) {
     llvm::Value *left = LHS->codegen(codegenvis);
     llvm::Value *right = RHS->codegen(codegenvis);
 
-    if (!left || !right)
-        return nullptr;
+    if (!left || !right) return nullptr;
 
     if (isPointerType(LHS->infType)) {
         OpConfig opconf = {left, right, Op, LHS->infType->to};
@@ -187,8 +184,7 @@ llvm::Value *CallExpr::codegen(CodegenVis &codegenvis) {
     llvm::Module *module = (codegenvis.Module).get();
     llvm::Function *calleefunc = module->getFunction(callee);
 
-    if (!calleefunc)
-        return codegenvis.LogErrorV("Unknown function referenced");
+    if (!calleefunc) return codegenvis.LogErrorV("Unknown function referenced");
 
     if (calleefunc->arg_size() != args.size())
         return codegenvis.LogErrorV("Incorrect no. of arguments passed");
@@ -197,14 +193,12 @@ llvm::Value *CallExpr::codegen(CodegenVis &codegenvis) {
 
     for (unsigned i = 0, e = args.size(); i != e; ++i) {
         argsValue.push_back(args[i]->codegen(codegenvis));
-        if (!argsValue.back())
-            return nullptr;
+        if (!argsValue.back()) return nullptr;
     }
 
     if (calleefunc->getReturnType() != llvm::Type::getVoidTy(*Context))
         return Bldr->CreateCall(calleefunc, argsValue, "calltmp");
-    else
-        return Bldr->CreateCall(calleefunc, argsValue);
+    else return Bldr->CreateCall(calleefunc, argsValue);
 }
 
 llvm::Value *MemberAccessExpr::codegen(CodegenVis &codegenvis) {

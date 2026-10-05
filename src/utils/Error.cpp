@@ -11,17 +11,17 @@
 
 std::vector<std::string> sourceLines;
 
-Error::Error(int l, int c, const std::string &msg)
-    : line(l),
-      column(c),
-      message(msg) {
+Error::Error(int l, int c, const std::string &msg) :
+    line(l),
+    column(c),
+    message(msg) {
     printErrorMsg(*this);
 }
 
-Warning::Warning(int l, int c, const std::string &msg)
-    : line(l),
-      column(c),
-      message(msg) {
+Warning::Warning(int l, int c, const std::string &msg) :
+    line(l),
+    column(c),
+    message(msg) {
     printWarning(*this);
 }
 
@@ -29,10 +29,8 @@ void printErrorMsg(Error &error) {
     std::cerr << "--> " << error.line << ":" << error.column << "\n";
     std::string msg;
 
-    if (error.line - 1 == sourceLines.size())
-        msg = "END OF FILE";
-    else
-        msg = sourceLines[error.line - 1];
+    if (error.line - 1 == sourceLines.size()) msg = "END OF FILE";
+    else msg = sourceLines[error.line - 1];
 
     std::cerr << error.line << "|" << msg << "\n";
     int offset = getNumDig(error.line);
@@ -51,10 +49,8 @@ void printWarning(Warning &warning) {
     std::cerr << "--> " << warning.line << ":" << warning.column << "\n";
     std::string msg;
 
-    if (warning.line - 1 == sourceLines.size())
-        msg = "END OF FILE";
-    else
-        msg = sourceLines[warning.line - 1];
+    if (warning.line - 1 == sourceLines.size()) msg = "END OF FILE";
+    else msg = sourceLines[warning.line - 1];
 
     std::cerr << warning.line << "|" << msg << "\n";
     int offset = getNumDig(warning.line);
@@ -82,12 +78,8 @@ void getSourceLines(const std::string &source) {
 }
 
 int getNumDig(int line) {
-    if (line >= 1000)
-        return 4;
-    else if (line >= 100)
-        return 3;
-    else if (line >= 10)
-        return 2;
-    else
-        return 1;
+    if (line >= 1000) return 4;
+    else if (line >= 100) return 3;
+    else if (line >= 10) return 2;
+    else return 1;
 }
