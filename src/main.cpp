@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    if (!config.notCompile) return 0;
+    if (config.notCompile) return 0;
 
     prog->codegen();
 

@@ -67,13 +67,25 @@ TypeKind *getType(const std::string &typeName) {
     return typeTable["null"].get();
 }
 
+std::string getArrName(std::string typeName, int numOfElements) {
+    TypeKind *type = getType(typeName);
+    
+    if (!isArrayType(type)) {
+        return std::format("{}[{}]", typeName, numOfElements);
+    } else {
+        size_t currNum = getNumElements(type);
+        std::string name = getArrName(type->to->name, numOfElements);
+        return std::format("{}[{}]", name, currNum);
+    }
+}
+
 TypeKind *getArrType(const std::string &typeName, int numOfElements) {
     TypeKind *base = getType(typeName);
     size_t baseSize = base->size;
 
     size_t arrSize = numOfElements * baseSize;
 
-    std::string newTypeName = std::format("{}[{}]", typeName, numOfElements);
+    std::string newTypeName = getArrName(typeName, numOfElements);
 
     if (typeTable.count(newTypeName)) return typeTable[newTypeName].get();
 

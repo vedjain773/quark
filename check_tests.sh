@@ -12,10 +12,10 @@ do
     for mode in normal optimized
     do
         if [ "$mode" = "optimized" ]; then
-            ./quark "$file" --optimize -o test.o
+            ./quark "$file" --optimize -o out/test.o
             label="[OPT]"
         else
-            ./quark "$file" -o test.o
+            ./quark "$file" -o out/test.o
             label="[STD]"
         fi
 
@@ -24,7 +24,7 @@ do
             continue
         fi
 
-        gcc test.o -o out/test
+        gcc out/test.o -o out/test
 
         if [ $? -ne 0 ]; then
             echo -e "\033[31m [FAIL] \033[0m $label $file linker error"
